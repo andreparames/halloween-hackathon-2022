@@ -1,4 +1,5 @@
 
+import axios from 'axios';
 import { GltfView } from 'gltf-viewer-source';
 
 import { UIModel } from './logic/uimodel.js';
@@ -145,6 +146,81 @@ async function main()
         view.renderFrame(state, canvas.width, canvas.height);
         const dataURL = canvas.toDataURL();
         downloadDataURL("capture.png", dataURL);
+    });
+
+    uiModel.runRender.subscribe( () => {
+        let camera = state.userCamera;
+        if(state.cameraIndex !== undefined)
+        {
+            camera = state.gltf.cameras[state.cameraIndex];
+        }
+        let cam_pos = camera.getPosition();
+        let cam_rot = camera.getRotation();
+	var job_data = {
+  "tasks": [
+    {
+      "cameraAngle": 0.48869219422340393,
+      "cameraPos.x": cam_pos[0] / 100.0,
+      "cameraPos.y": cam_pos[1] / 100.0,
+      "cameraPos.z": cam_pos[2] / 100.0,
+      "cameraRot.w": cam_rot[3],
+      "cameraRot.x": cam_rot[0],
+      "cameraRot.y": cam_rot[1],
+      "cameraRot.z": cam_rot[2],
+      "downloadResults": true,
+      "engineModeGpu": false,
+      "fbx": "C:/Users/AndrePereira/AppData/Local/Browzwear/StylezoneConnect/tasks-data/605cb79c/1/object.fbx",
+      "hdri_background": false,
+      "ibl exp": 1,
+      "ibl path": "C:/Users/AndrePereira/AppData/Local/Browzwear/VStitcher/Ibl/Studio Soft/Studio Soft_equi.hdr",
+      "ibl rot": 0.37877047061920166,
+      "id": "6d60b3a8-55f0-11ed-aa39-f8633f631090",
+      "iterations": 10,
+      "outFormat": "PNG",
+      "outPath": "C:/Users/AndrePereira/Downloads/0000 mario block test 2_Colorway 1.png",
+      "size.x": 650,
+      "size.y": 650,
+      "solid_background_color": 4294967295,
+      "taskGroup": null,
+      "transparent_background": true,
+      "type": "render",
+      "colorway_number": 0
+    }
+  ],
+  "username": "andre@stitch3d.com",
+  "job_name": "0000 mario block test 2"
+}
+
+      var json_data = JSON.stringify(job_data);
+      const blob = new Blob([json_data], {type : 'application/json'});
+      var formData = new FormData();
+      formData.append('file', blob, 'example.json');
+      formData.append('data', '{"colorway": 0}');
+      formData.append('type', 'json-file');
+
+      axios.get('https://id.staging.stitch.fashion/auth/whoami/', {headers: {'Accept': 'application/json'}, withCredentials: true}).then(function(response) {
+        var email = response.data.email;
+        axios.post('https://renders-api.staging.stitch.fashion/jobs/', {"name": "Hackathon", "type": "dh-blend-file-task", "data": {"total-frames": 1,"colorways-number": 1,"browzwear_version": "8_1"}, "owner": email}, {headers: {"X-Stitch-Client": "3d-viewer"}, withCredentials: true}).then(function(response) {
+          var job_id = response.data.id;
+  
+          axios.post(`https://renders-api.staging.stitch.fashion/jobs/${job_id}/files/?hackathon=1`, {"type": "blend-file", "data": {"colorway":0}}, {headers: {"X-Stitch-Client": "3d-viewer"}, withCredentials: true}).then(function(response) {
+          /*axios.get('https://renders-api.staging.stitch.fashion/jobs/33455/', {headers: {'Accept': 'application/json', "X-Stitch-Client": "3d-viewer"}, withCredentials: true}).then(function(response) {
+          var old_file_id = response.data.files["json-file"][0].id;
+          var old_file_url = `https://renders-api.staging.stitch.fashion/jobs/33455/files/${old_file_id}/`;
+          axios.delete(old_file_url, {headers: {"X-Stitch-Client": "3d-viewer"}, withCredentials: true}).then(function(response) {*/
+  
+            axios.post(`https://renders-api.staging.stitch.fashion/jobs/${job_id}/files/`, formData, {headers: {'Content-Type': 'multipart/form-data', "X-Stitch-Client": "3d-viewer"}, withCredentials: true})
+            .then(function (response) {
+              axios.post(`https://renders-api.staging.stitch.fashion/jobs/${job_id}/submit/`, {}, {headers: { "X-Stitch-Client": "3d-viewer"}, withCredentials: true}).then(function(req) {
+                window.open("https://hub.staging.stitch.fashion/jobs", "_blank");
+              });
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+          });
+        });
+      });
     });
 
     // Only redraw glTF view upon user inputs, or when an animation is playing.

@@ -318,6 +318,26 @@
                             <json-to-ui-template v-bind:data="xmp" v-bind:isinner="false"></json-to-ui-template>
                         </div>
                     </b-tab-item>
+
+                    <b-tab-item label="Render" icon="video" class="tabItemScrollable tab-item">
+                        <template #header>
+                            <div @click="collapseActiveTab($event, 3)"
+                                v-bind:style="[tabsHidden === false && activeTab === 3 ? {'height': '100%'} : {}]">
+                                <!-- to get colored icons use: https://stackoverflow.com/a/43916743 -->
+                                <img src="assets/ui/stitch_30x30.png" width="30px">
+                                <span
+                                    v-bind:style="[tabsHidden === false && activeTab === 3 ? {'display': 'none'} : {}]">Render</span>
+                            </div>
+                        </template>
+
+                        <div class="tabContent">
+                            <img src="assets/ui/Navigation_right_20px.svg" width="30px"
+                                @click="collapseActiveTab($event, 2)">
+                            <h2 class="title is-spaced">Render</h2>
+                            <button v-stream:click="runRender$" type="button" class="button is-rounded"><i
+                                        class="fa fa-file-upload downloadIcon"></i>Render on the Farm</button>
+                        </div>
+                    </b-tab-item>
                     <!--<b-tab-item label="Capture" icon="video">
                         <template #header>
                             to get colored icons use: https://stackoverflow.com/a/43916743
